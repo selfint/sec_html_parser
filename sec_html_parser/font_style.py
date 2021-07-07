@@ -3,7 +3,6 @@ from typing import Optional, Tuple, Union
 
 import regex as re
 from bs4.element import Tag
-from bs4 import BeautifulSoup
 
 
 @dataclass
