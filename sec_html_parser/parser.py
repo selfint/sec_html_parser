@@ -35,6 +35,8 @@ class Parser:
             if nstyle.style is not None:
                 if ostyle.style == "italic" and nstyle.style != "italic":
                     return True
+                else:
+                    return False
             return ostyle.style == "italic"
 
         # if not child by any of the above then it is not a child
