@@ -1,6 +1,7 @@
-from typing import Optional, Tuple
-import regex as re
 from dataclasses import dataclass
+from typing import Optional, Tuple
+
+import regex as re
 
 
 @dataclass
