@@ -31,6 +31,11 @@ class Parser:
         except ValueError:
             return True
 
+        # text in relative position (top or bottom) is never a child
+        # and can never have children
+        if nstyle.relative or ostyle.relative:
+            return False
+
         # check if style by size
         if ostyle.size is not None:
             if nstyle.size is not None and nstyle.size < ostyle.size:

@@ -89,6 +89,22 @@ class TestParser(unittest.TestCase):
         self.assertFalse(p._is_child(sibling1, sibling2))
         self.assertFalse(p._is_child(sibling2, sibling1))
 
+    def test_is_child_relative_text_is_not_child(self):
+        sibling1 = BeautifulSoup(
+            """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:400;line-height:120%">iPad</span>""",
+            features="html.parser",
+        )
+        sibling1 = list(sibling1.children)[0]
+        sibling2 = BeautifulSoup(
+            """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:6.5pt;font-weight:400;line-height:120%;position:relative;top:-3.5pt;vertical-align:baseline">Â®</span>""",
+            features="html.parser",
+        )
+        sibling2 = list(sibling2.children)[0]
+
+        p = Parser()
+        self.assertFalse(p._is_child(sibling1, sibling2))
+        self.assertFalse(p._is_child(sibling2, sibling1))
+
     def test_walk_soup(self):
         soup = BeautifulSoup(
             """<body>
