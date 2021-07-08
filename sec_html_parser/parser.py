@@ -1,9 +1,18 @@
 from typing import Iterator, List, Union
+from collections import defaultdict
 
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
 
 from sec_html_parser.font_style import FontStyle
+from dataclasses import dataclass
+
+
+@dataclass
+class HierarchyNode:
+    node: PageElement
+    content: List[str]
+    children: List
 
 
 class Parser:
@@ -73,8 +82,55 @@ class Parser:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
 
-    def get_hierarchy(self, soup: BeautifulSoup) -> dict:
+    def get_hierarchy(self, soup: BeautifulSoup, keep_nodes: bool = False) -> dict:
         """
         Get text hierarchy of text in soup, with respect to the style attribute
         of the elements in the soup.
         """
+
+        hierarchy = {"root": []}
+        stack = []
+        for element_node in self._walk_soup(soup, not_into=["span"]):
+            if element_node.name == "span":
+                element_content = element_node.text.strip()
+                element_children = {element_content: []}
+                element = (element_node, element_children[element_content])
+
+                # pop elements from the stack until a parent is found
+                for parent_node, parent_children in reversed(stack):
+                    if self._is_child(element_node, parent_node):
+
+                        # add the element as a child of the parent
+                        parent_children.append(element_children)
+
+                        # add a pointer to the element's children to the stack
+                        stack.append(element)
+                        break
+                    else:
+                        stack.pop()
+                else:
+
+                    # if no parent was found add the element as a child
+                    # of the root node
+                    hierarchy["root"].append(element_children)
+                    stack.append(element)
+
+        hierarchy = self._clean_leaves(hierarchy)
+
+        return hierarchy
+
+    def _clean_leaves(self, hierarchy: dict) -> dict:
+        """Convert leaf nodes to strings instead of dictionaries with an empty list"""
+
+        # first we get the name of the node
+        name = list(hierarchy)[0]
+
+        # then we check if it is a leaf
+        if len(hierarchy[name]) == 0:
+
+            # if so then we return the name of the node
+            return name
+        else:
+
+            # if not then we clean all the child nodes of the current node
+            return {name: [self._clean_leaves(child) for child in hierarchy[name]]}
