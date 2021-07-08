@@ -1,3 +1,5 @@
+from typing import Iterator, List, Union
+
 import bs4.element
 from bs4 import BeautifulSoup
 
@@ -41,3 +43,29 @@ class Parser:
 
         # if not child by any of the above then it is not a child
         return False
+
+    def _walk_soup(
+        self,
+        element: Union[BeautifulSoup, bs4.element.PageElement],
+        not_into: List[str] = list(),
+    ) -> Iterator[bs4.element.PageElement]:
+        """
+        Iterate given element and all its children in a depth-first manner
+
+        Will not yield elements without a `name` (e.g. a text element in a span),
+        neither will it yield elements whose `name` is in the `not_into` list.
+        """
+
+        element_is_not_soup = not isinstance(element, BeautifulSoup)
+        element_has_name = element.name is not None
+
+        if element_is_not_soup and element_has_name:
+            yield element
+
+        element_has_children = hasattr(element, "children")
+        if element_has_children:
+
+            should_recurse = element.name not in not_into
+            if should_recurse:
+                for child in element.children:
+                    yield from self._walk_soup(child, not_into)
