@@ -72,3 +72,9 @@ class Parser:
             if should_recurse:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
+
+    def get_hierarchy(self, soup: BeautifulSoup) -> dict:
+        """
+        Get text hierarchy of text in soup, with respect to the style attribute
+        of the elements in the soup.
+        """
