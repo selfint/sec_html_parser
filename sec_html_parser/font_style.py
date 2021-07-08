@@ -9,25 +9,30 @@ from bs4.element import Tag
 class FontStyle:
     """Parsed HTML span style element attributes"""
 
-    size: Optional[int]
+    size: Optional[float]
     weight: Optional[int]
     style: Optional[str]
+    relative: bool
 
     def __init__(self, node_or_style: Union[str, Tag]) -> None:
-        _font_size_re = re.compile("font-size:(\d+)")
-        _font_weight_re = re.compile("font-weight:(\d+)")
-        _font_style_re = re.compile("font-style:([a-zA-Z]+)")
+        _font_size_re = re.compile("font-size:(\d+\.?\d*);?")
+        _font_weight_re = re.compile("font-weight:(\d+);?")
+        _font_style_re = re.compile("font-style:([a-zA-Z]+);?")
+        _relative_re = re.compile("position:relative;?")
 
         span_style = self._get_style_string(node_or_style)
 
         size = _font_size_re.search(span_style)
-        self.size = None if size is None else int(size.group(1))
+        self.size = None if size is None else float(size.group(1))
 
         weight = _font_weight_re.search(span_style)
         self.weight = None if weight is None else int(weight.group(1))
 
         style = _font_style_re.search(span_style)
         self.style = None if style is None else style.group(1)
+
+        relative = _relative_re.search(span_style)
+        self.relative = False if relative is None else True
 
     @staticmethod
     def _get_style_string(node_or_style: Union[str, Tag]) -> str:
