@@ -1,13 +1,13 @@
 from typing import Iterator, List, Union
 
-import bs4.element
 from bs4 import BeautifulSoup
+from bs4.element import PageElement, Tag
 
 from sec_html_parser.font_style import FontStyle
 
 
 class Parser:
-    def _is_child(self, node: bs4.element.Tag, other: bs4.element.Tag) -> bool:
+    def _is_child(self, node: Tag, other: Tag) -> bool:
         """Check if node is a child of other with respect to font styles"""
 
         # check that other has a style
@@ -46,14 +46,17 @@ class Parser:
 
     def _walk_soup(
         self,
-        element: Union[BeautifulSoup, bs4.element.PageElement],
+        element: Union[BeautifulSoup, PageElement],
         not_into: List[str] = list(),
-    ) -> Iterator[bs4.element.PageElement]:
+    ) -> Iterator[PageElement]:
         """
         Iterate given element and all its children in a depth-first manner
 
         Will not yield elements without a `name` (e.g. a text element in a span),
         neither will it yield elements whose `name` is in the `not_into` list.
+
+        If given a `BeautifulSoup` object, only the children will be yielded
+        (and recursed into if appropriate), not the `BeautifulSoup` object itself.
         """
 
         element_is_not_soup = not isinstance(element, BeautifulSoup)
