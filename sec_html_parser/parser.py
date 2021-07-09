@@ -9,13 +9,6 @@ from sec_html_parser.div_style import DivStyle
 from sec_html_parser.font_style import FontStyle
 
 
-@dataclass
-class HierarchyNode:
-    node: PageElement
-    content: List[str]
-    children: List
-
-
 class Parser:
     def _is_span_child(self, node: Tag, other: Tag) -> bool:
         """Check if node is a child of other with respect to font styles"""
