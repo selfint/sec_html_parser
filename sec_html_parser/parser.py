@@ -171,3 +171,13 @@ class Parser:
                     return True
 
         return False
+
+    def hierarchy_to_string(self, hierarchy: dict, depth: int = 0) -> str:
+        """Get a string representation of a hierarchy"""
+
+        key = list(hierarchy.keys())[0]
+        string = "\t" * depth + key + "\n"
+        for child in hierarchy[key]:
+            string += self.hierarchy_to_string(child, depth + 1)
+
+        return string

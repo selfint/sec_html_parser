@@ -215,3 +215,51 @@ class TestParser(unittest.TestCase):
         extracted_hierarchy = p.get_hierarchy(soup)
         self.maxDiff = None
         self.assertDictEqual(extracted_hierarchy, soup_hierarchy)
+
+    def test_hierarchy_to_string(self):
+        soup = BeautifulSoup(
+            """<body>
+            <div style="margin-top:18pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">PART I</span></div>
+            <div id="ief781ab58e4f4fcaa872ddbd30da40e1_13"></div>
+            <div style="margin-top:12pt;padding-left:45pt;text-align:justify;text-indent:-45pt"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Item 1. Business</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Company Background</span></div>
+            <div style="margin-top:6pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:400;line-height:120%">The Company is a California corporation established in 1977.</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Products</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">iPhone</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">Mac</span></div>
+                </body>""",
+            features="html.parser",
+        )
+        soup_hierarchy = {
+            "root": [
+                {
+                    "PART I": [
+                        {
+                            "Item 1. Business": [
+                                {
+                                    "Company Background": [
+                                        "The Company is a California corporation established in 1977."
+                                    ]
+                                },
+                                {"Products": ["iPhone", "Mac"]},
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        soup_hierarchy_string = """
+root
+\tPART I
+\t\tItem 1. Business
+\t\t\tCompany Background
+\t\t\t\tThe Company is a California corporation established in 1977.
+\t\t\tProducts
+\t\t\t\tiPhone
+\t\t\t\tMac
+"""
+
+        p = Parser()
+        extracted_hierarchy = p.get_hierarchy(soup)
+        self.maxDiff = None
+        self.assertDictEqual(extracted_hierarchy, soup_hierarchy)
