@@ -112,8 +112,9 @@ class Parser:
                     element_node, element_div, parents_metadata_stack, hierarchy
                 )
             elif element_node.name == "table":
-                _, _, parent_children = parents_metadata_stack[-1]
-                parent_children.append({"table": [str(element_node)]})
+                if element_node.text != "":
+                    _, _, parent_children = parents_metadata_stack[-1]
+                    parent_children.append({"table": [str(element_node)]})
 
         hierarchy = self._clean_leaves(hierarchy)
 
