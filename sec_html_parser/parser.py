@@ -103,7 +103,7 @@ class Parser:
         hierarchy = {"root": []}
         span_stack = []
         element_div = None
-        for element_node in self._walk_soup(soup, not_into=["span"]):
+        for element_node in self._walk_soup(soup, not_into=["span", "table"]):
             if element_node.name == "div":
                 element_div = element_node
             elif element_node.name == "span":
