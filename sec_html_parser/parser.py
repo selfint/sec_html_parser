@@ -187,7 +187,7 @@ class Parser:
         """Get a string representation of a hierarchy"""
 
         if isinstance(hierarchy, str):
-            return hierarchy
+            return "\t" * depth + hierarchy + "\n"
 
         key = list(hierarchy.keys())[0]
         string = "\t" * depth + key + "\n"
