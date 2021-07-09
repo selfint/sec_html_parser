@@ -10,9 +10,9 @@ class TestParser(unittest.TestCase):
         p = Parser()
 
     def test_is_child_size_larger(self):
-        child = BeautifulSoup('<span style="font-size:9pt"', features="html.parser")
+        child = BeautifulSoup('<span style="font-size:9pt"/>', features="html.parser")
         child = list(child.children)[0]
-        parent = BeautifulSoup('<span style="font-size:10pt"', features="html.parser")
+        parent = BeautifulSoup('<span style="font-size:10pt"/>', features="html.parser")
         parent = list(parent.children)[0]
 
         p = Parser()
@@ -105,6 +105,21 @@ class TestParser(unittest.TestCase):
         self.assertFalse(p._is_span_child(sibling1, sibling2))
         self.assertFalse(p._is_span_child(sibling2, sibling1))
 
+    def test_is_child_descending_priority_order(self):
+        child = BeautifulSoup(
+            """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">Unless otherwise stated.</span>""",
+            features="html.parser",
+        )
+        child = list(child.children)[0]
+        parent = BeautifulSoup(
+            """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">PART I</span>""",
+            features="html.parser",
+        )
+        parent = list(parent.children)[0]
+        p = Parser()
+        self.assertTrue(p._is_span_child(child, parent))
+        self.assertFalse(p._is_span_child(parent, child))
+
     def test_is_div_child(self):
         child = BeautifulSoup(
             """<div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Company Background</span></div>""",
@@ -174,6 +189,20 @@ class TestParser(unittest.TestCase):
         expected_hierarchy = {
             "root": [{"Item 1. Business": ["Company Background", "Products"]}]
         }
+        p = Parser()
+        extracted_hierarchy = p.get_hierarchy(soup)
+        self.assertDictEqual(extracted_hierarchy, expected_hierarchy)
+
+    def test_get_hierarchy_div_child_but_not_span_child(self):
+        soup = BeautifulSoup(
+            """<body>
+            <div style="margin-top:12pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">Unless otherwise stated.</span></div>
+            <div style="margin-top:18pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">PART I</span></div>
+                </body>""",
+            features="html.parser",
+        )
+
+        expected_hierarchy = {"root": ["Unless otherwise stated.", "PART I"]}
         p = Parser()
         extracted_hierarchy = p.get_hierarchy(soup)
         self.assertDictEqual(extracted_hierarchy, expected_hierarchy)
