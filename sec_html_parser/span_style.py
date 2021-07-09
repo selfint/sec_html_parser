@@ -15,10 +15,10 @@ class SpanStyle:
     relative: bool
 
     def __init__(self, node_or_style: Union[str, Tag]) -> None:
-        _font_size_re = re.compile("font-size:(\d+\.?\d*);?")
-        _font_weight_re = re.compile("font-weight:(\d+);?")
-        _font_style_re = re.compile("font-style:([a-zA-Z]+);?")
-        _relative_re = re.compile("position:relative;?")
+        _font_size_re = re.compile(r"font-size:(\d+\.?\d*);?")
+        _font_weight_re = re.compile(r"font-weight:(\d+);?")
+        _font_style_re = re.compile(r"font-style:([a-zA-Z]+);?")
+        _relative_re = re.compile(r"position:relative;?")
 
         span_style = self._get_style_string(node_or_style)
 

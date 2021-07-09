@@ -14,7 +14,7 @@ class DivStyle:
     margin_top: Optional[float]
 
     def __init__(self, node_or_style: Union[str, Tag]) -> None:
-        _margin_top_re = re.compile("margin-top:(\d+\.?\d*)pt;?")
+        _margin_top_re = re.compile(r"margin-top:(\d+\.?\d*)pt;?")
 
         div_style_str = SpanStyle._get_style_string(node_or_style)
 
