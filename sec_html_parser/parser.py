@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterator, List, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
@@ -96,44 +96,99 @@ class Parser:
         """
 
         hierarchy = {"root": []}
-        span_stack = []
+
+        # this stack is used to check at what depth the next
+        # element in the soup should go in the new hierarchy
+        parents_metadata_stack = []
+
+        # keep track of the current div the elements are in
         element_div = None
+
         for element_node in self._walk_soup(soup, not_into=["span", "table"]):
             if element_node.name == "div":
                 element_div = element_node
             elif element_node.name == "span":
-                element_content = element_node.text.strip()
-                element_children = {element_content: []}
-                element = (element_div, element_node, element_children[element_content])
-
-                # pop elements from the stack until a parent is found
-                for parent_div, parent_node, parent_children in reversed(span_stack):
-                    div_child = (
-                        True
-                        if parent_div is None
-                        else self._is_div_child(element_div, parent_div)
-                    )
-                    span_child = self._is_span_child(element_node, parent_node)
-                    if (div_child and not span_child) or span_child:
-
-                        # add the element as a child of the parent
-                        parent_children.append(element_children)
-
-                        # add a pointer to the element's children to the stack
-                        span_stack.append(element)
-                        break
-                    else:
-                        span_stack.pop()
-                else:
-
-                    # if no parent was found add the element as a child
-                    # of the root node
-                    hierarchy["root"].append(element_children)
-                    span_stack.append(element)
+                self._add_span_to_hierarchy(
+                    element_node, element_div, parents_metadata_stack, hierarchy
+                )
 
         hierarchy = self._clean_leaves(hierarchy)
 
         return hierarchy
+
+    def _add_span_to_hierarchy(
+        self,
+        element_node: Tag,
+        element_div: Tag,
+        parents_metadata_stack: List[Tuple[Tag, Tag, List]],
+        hierarchy: Dict,
+    ) -> None:
+        """
+        Pop the stack until a parent is found for the element,
+        add the element as a child of that parent,
+        and push the element to the stack.
+
+        If no parent is found then the element is added as a child of the 'root'
+        node of the hierarchy.
+
+        This modifies both the parent_stack and the hierarchy objects.
+        """
+
+        # create element tuple for the stack
+        element_content = element_node.text.strip()
+        element_children = []
+        element_metadata = (element_div, element_node, element_children)
+
+        # create element hierarchy node
+        element_hierarchy_node = {element_content: element_children}
+
+        # pop elements from the stack until a parent is found
+        for p_div, p_style, p_children in reversed(parents_metadata_stack):
+
+            # check if the current top of the element_stack is a parent of
+            # the current node
+            if self._is_parent(p_div, p_style, element_div, element_node):
+
+                # add the element hierarchy node as a child of the parent
+                p_children.append(element_hierarchy_node)
+
+                # update the stack so that this element's metadata is at the top
+                parents_metadata_stack.append(element_metadata)
+
+                # the element has been added to the hierarchy, we are done
+                return
+            else:
+                parents_metadata_stack.pop()
+
+        # if no parent was found add the element as a child
+        # of the root node
+        hierarchy["root"].append(element_hierarchy_node)
+
+        # update the stack so that this element's metadata is at the top
+        parents_metadata_stack.append(element_metadata)
+
+    def _is_parent(
+        self,
+        parent_div: Optional[Tag],
+        parent_style: Tag,
+        child_div: Optional[Tag],
+        child_style: Tag,
+    ) -> bool:
+        """Check if parent is a parent of element based on its div and span"""
+
+        # check if parent by div or span
+        parent_by_div = (
+            True if parent_div is None else self._is_div_child(child_div, parent_div)
+        )
+        parent_by_span = self._is_span_child(child_style, parent_style)
+
+        # if parent by span then it is always a parent
+        # but if parent by div then it is a parent only if it isn't
+        # a parent by span (for an example see
+        # test `test_get_hierarchy_div_child_but_not_span_child`)
+        is_parent = parent_by_span or (parent_by_div and not parent_by_span)
+
+        return is_parent
 
     def _clean_leaves(self, hierarchy: dict) -> dict:
         """Convert leaf nodes to strings instead of dictionaries with an empty list"""
