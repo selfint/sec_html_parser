@@ -9,7 +9,7 @@ class TestFontStyle(unittest.TestCase):
     def test_div_style(self):
         span_style = "margin-top:9pt;text-align:justify"
         div_style = DivStyle(span_style)
-        self.assertEqual(div_style.margin_top, 9)
+        assert div_style.margin_top == 9
 
     def test_div_style_from_node(self):
         soup = BeautifulSoup(
@@ -18,4 +18,4 @@ class TestFontStyle(unittest.TestCase):
         )
         span_node = list(soup.children)[0]
         div_style = DivStyle(span_node)
-        self.assertEqual(div_style.margin_top, 1.5)
+        assert div_style.margin_top == 1.5

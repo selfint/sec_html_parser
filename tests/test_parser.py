@@ -3,6 +3,7 @@ import unittest
 from bs4 import BeautifulSoup
 
 from sec_html_parser.parser import Parser
+import pytest
 
 
 class TestParser(unittest.TestCase):
@@ -16,8 +17,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_span_child(child, parent))
-        self.assertFalse(p._is_span_child(parent, child))
+        assert p._is_span_child(child, parent)
+        assert not p._is_span_child(parent, child)
 
     def test_is_child_size_equal(self):
         sibling1 = BeautifulSoup('<span style="font-size:10pt"', features="html.parser")
@@ -26,8 +27,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_span_child(sibling1, sibling2))
-        self.assertFalse(p._is_span_child(sibling2, sibling1))
+        assert not p._is_span_child(sibling1, sibling2)
+        assert not p._is_span_child(sibling2, sibling1)
 
     def test_is_child_size_equal_weight_larger(self):
         child = BeautifulSoup(
@@ -40,8 +41,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_span_child(child, parent))
-        self.assertFalse(p._is_span_child(parent, child))
+        assert p._is_span_child(child, parent)
+        assert not p._is_span_child(parent, child)
 
     def test_is_child_size_equal_weight_equal(self):
         sibling1 = BeautifulSoup(
@@ -54,8 +55,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_span_child(sibling1, sibling2))
-        self.assertFalse(p._is_span_child(sibling2, sibling1))
+        assert not p._is_span_child(sibling1, sibling2)
+        assert not p._is_span_child(sibling2, sibling1)
 
     def test_is_child_size_equal_weight_equal_style_italic(self):
         child = BeautifulSoup(
@@ -70,8 +71,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_span_child(child, parent))
-        self.assertFalse(p._is_span_child(parent, child))
+        assert p._is_span_child(child, parent)
+        assert not p._is_span_child(parent, child)
 
     def test_is_child_size_equal_weight_equal_style_equal(self):
         sibling1 = BeautifulSoup(
@@ -86,8 +87,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_span_child(sibling1, sibling2))
-        self.assertFalse(p._is_span_child(sibling2, sibling1))
+        assert not p._is_span_child(sibling1, sibling2)
+        assert not p._is_span_child(sibling2, sibling1)
 
     def test_is_child_relative_text_is_not_child(self):
         sibling1 = BeautifulSoup(
@@ -102,8 +103,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_span_child(sibling1, sibling2))
-        self.assertFalse(p._is_span_child(sibling2, sibling1))
+        assert not p._is_span_child(sibling1, sibling2)
+        assert not p._is_span_child(sibling2, sibling1)
 
     def test_is_child_descending_priority_order(self):
         child = BeautifulSoup(
@@ -117,8 +118,8 @@ class TestParser(unittest.TestCase):
         )
         parent = list(parent.children)[0]
         p = Parser()
-        self.assertTrue(p._is_span_child(child, parent))
-        self.assertFalse(p._is_span_child(parent, child))
+        assert p._is_span_child(child, parent)
+        assert not p._is_span_child(parent, child)
 
     def test_is_div_child(self):
         child = BeautifulSoup(
@@ -133,8 +134,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_div_child(child, parent))
-        self.assertFalse(p._is_div_child(parent, child))
+        assert p._is_div_child(child, parent)
+        assert not p._is_div_child(parent, child)
 
     def test_walk_soup(self):
         soup = BeautifulSoup(
@@ -149,15 +150,16 @@ class TestParser(unittest.TestCase):
 
         p = Parser()
         walker = p._walk_soup(soup, not_into=["table", "span"])
-        self.assertEqual(next(walker).name, "body")
-        self.assertEqual(next(walker).name, "div")
-        self.assertEqual(next(walker).name, "span")
-        self.assertEqual(next(walker).name, "div")
-        self.assertEqual(next(walker).name, "div")
-        self.assertEqual(next(walker).name, "span")
-        self.assertEqual(next(walker).name, "div")
-        self.assertEqual(next(walker).name, "table")
-        self.assertRaises(StopIteration, next, walker)
+        assert next(walker).name == "body"
+        assert next(walker).name == "div"
+        assert next(walker).name == "span"
+        assert next(walker).name == "div"
+        assert next(walker).name == "div"
+        assert next(walker).name == "span"
+        assert next(walker).name == "div"
+        assert next(walker).name == "table"
+        with pytest.raises(StopIteration):
+            next(walker)
 
     def test_get_hierarchy(self):
         soup = BeautifulSoup(
@@ -174,7 +176,7 @@ class TestParser(unittest.TestCase):
 
         p = Parser()
         hierarchy = p.get_hierarchy(soup)
-        self.assertDictEqual(hierarchy, soup_hierarchy)
+        assert hierarchy == soup_hierarchy
 
     def test_get_hierarchy_div_child(self):
         soup = BeautifulSoup(
@@ -191,7 +193,7 @@ class TestParser(unittest.TestCase):
         }
         p = Parser()
         extracted_hierarchy = p.get_hierarchy(soup)
-        self.assertDictEqual(extracted_hierarchy, expected_hierarchy)
+        assert extracted_hierarchy == expected_hierarchy
 
     def test_get_hierarchy_div_child_but_not_span_child(self):
         soup = BeautifulSoup(
@@ -205,7 +207,7 @@ class TestParser(unittest.TestCase):
         expected_hierarchy = {"root": ["Unless otherwise stated.", "PART I"]}
         p = Parser()
         extracted_hierarchy = p.get_hierarchy(soup)
-        self.assertDictEqual(extracted_hierarchy, expected_hierarchy)
+        assert extracted_hierarchy == expected_hierarchy
 
     def test_get_hierarchy_large(self):
         soup = BeautifulSoup(
@@ -243,7 +245,7 @@ class TestParser(unittest.TestCase):
         p = Parser()
         extracted_hierarchy = p.get_hierarchy(soup)
         self.maxDiff = None
-        self.assertDictEqual(extracted_hierarchy, soup_hierarchy)
+        assert extracted_hierarchy == soup_hierarchy
 
     def test_hierarchy_to_string(self):
         soup = BeautifulSoup(
@@ -291,4 +293,4 @@ root
         p = Parser()
         extracted_hierarchy = p.get_hierarchy(soup)
         self.maxDiff = None
-        self.assertDictEqual(extracted_hierarchy, soup_hierarchy)
+        assert extracted_hierarchy == soup_hierarchy

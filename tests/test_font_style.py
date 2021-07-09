@@ -9,10 +9,10 @@ class TestFontStyle(unittest.TestCase):
     def test_font_style(self):
         span_style = "color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%"
         font_style = FontStyle(span_style)
-        self.assertEqual(font_style.size, 9)
-        self.assertEqual(font_style.weight, 400)
-        self.assertEqual(font_style.style, "italic")
-        self.assertEqual(font_style.relative, False)
+        assert font_style.size == 9
+        assert font_style.weight == 400
+        assert font_style.style == "italic"
+        assert font_style.relative == False
 
     def test_font_style_from_node(self):
         soup = BeautifulSoup(
@@ -21,10 +21,10 @@ class TestFontStyle(unittest.TestCase):
         )
         span_node = list(soup.children)[0]
         font_style = FontStyle(span_node)
-        self.assertEqual(font_style.size, 9)
-        self.assertEqual(font_style.weight, 400)
-        self.assertEqual(font_style.style, "italic")
-        self.assertEqual(font_style.relative, False)
+        assert font_style.size == 9
+        assert font_style.weight == 400
+        assert font_style.style == "italic"
+        assert font_style.relative == False
 
     def test_font_style_from_node_relative(self):
         soup = BeautifulSoup(
@@ -33,7 +33,7 @@ class TestFontStyle(unittest.TestCase):
         )
         span_node = list(soup.children)[0]
         font_style = FontStyle(span_node)
-        self.assertEqual(font_style.size, 6.5)
-        self.assertEqual(font_style.weight, 400)
-        self.assertEqual(font_style.style, None)
-        self.assertEqual(font_style.relative, True)
+        assert font_style.size == 6.5
+        assert font_style.weight == 400
+        assert font_style.style == None
+        assert font_style.relative == True
