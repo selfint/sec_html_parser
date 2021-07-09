@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterator, List, Union
 
 from bs4 import BeautifulSoup
@@ -86,6 +87,16 @@ class Parser:
             if should_recurse:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
+
+    def get_file_hierarchy(self, path: Path, keep_nodes: bool = False) -> dict:
+        """
+        Get text hierarchy of text in a file, with respect to the style attribute
+        of the elements in the soup.
+        """
+
+        soup = BeautifulSoup(path.read_text(), features="html.parser")
+
+        return self.get_hierarchy(soup, keep_nodes)
 
     def get_hierarchy(self, soup: BeautifulSoup, keep_nodes: bool = False) -> dict:
         """
