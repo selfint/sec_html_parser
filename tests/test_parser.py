@@ -16,8 +16,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_child(child, parent))
-        self.assertFalse(p._is_child(parent, child))
+        self.assertTrue(p._is_span_child(child, parent))
+        self.assertFalse(p._is_span_child(parent, child))
 
     def test_is_child_size_equal(self):
         sibling1 = BeautifulSoup('<span style="font-size:10pt"', features="html.parser")
@@ -26,8 +26,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_child(sibling1, sibling2))
-        self.assertFalse(p._is_child(sibling2, sibling1))
+        self.assertFalse(p._is_span_child(sibling1, sibling2))
+        self.assertFalse(p._is_span_child(sibling2, sibling1))
 
     def test_is_child_size_equal_weight_larger(self):
         child = BeautifulSoup(
@@ -40,8 +40,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_child(child, parent))
-        self.assertFalse(p._is_child(parent, child))
+        self.assertTrue(p._is_span_child(child, parent))
+        self.assertFalse(p._is_span_child(parent, child))
 
     def test_is_child_size_equal_weight_equal(self):
         sibling1 = BeautifulSoup(
@@ -54,8 +54,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_child(sibling1, sibling2))
-        self.assertFalse(p._is_child(sibling2, sibling1))
+        self.assertFalse(p._is_span_child(sibling1, sibling2))
+        self.assertFalse(p._is_span_child(sibling2, sibling1))
 
     def test_is_child_size_equal_weight_equal_style_italic(self):
         child = BeautifulSoup(
@@ -70,8 +70,8 @@ class TestParser(unittest.TestCase):
         parent = list(parent.children)[0]
 
         p = Parser()
-        self.assertTrue(p._is_child(child, parent))
-        self.assertFalse(p._is_child(parent, child))
+        self.assertTrue(p._is_span_child(child, parent))
+        self.assertFalse(p._is_span_child(parent, child))
 
     def test_is_child_size_equal_weight_equal_style_equal(self):
         sibling1 = BeautifulSoup(
@@ -86,8 +86,8 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_child(sibling1, sibling2))
-        self.assertFalse(p._is_child(sibling2, sibling1))
+        self.assertFalse(p._is_span_child(sibling1, sibling2))
+        self.assertFalse(p._is_span_child(sibling2, sibling1))
 
     def test_is_child_relative_text_is_not_child(self):
         sibling1 = BeautifulSoup(
@@ -102,8 +102,24 @@ class TestParser(unittest.TestCase):
         sibling2 = list(sibling2.children)[0]
 
         p = Parser()
-        self.assertFalse(p._is_child(sibling1, sibling2))
-        self.assertFalse(p._is_child(sibling2, sibling1))
+        self.assertFalse(p._is_span_child(sibling1, sibling2))
+        self.assertFalse(p._is_span_child(sibling2, sibling1))
+
+    def test_is_div_child(self):
+        child = BeautifulSoup(
+            """<div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Company Background</span></div>""",
+            features="html.parser",
+        )
+        child = list(child.children)[0]
+        parent = BeautifulSoup(
+            """<div style="margin-top:12pt;padding-left:45pt;text-align:justify;text-indent:-45pt"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Item 1.Â&nbsp;Â&nbsp;Â&nbsp;Â&nbsp;Business</span></div>""",
+            features="html.parser",
+        )
+        parent = list(parent.children)[0]
+
+        p = Parser()
+        self.assertTrue(p._is_div_child(child, parent))
+        self.assertFalse(p._is_div_child(parent, child))
 
     def test_walk_soup(self):
         soup = BeautifulSoup(
@@ -142,4 +158,60 @@ class TestParser(unittest.TestCase):
         }
 
         p = Parser()
-        self.assertDictEqual(p.get_hierarchy(soup), soup_hierarchy)
+        hierarchy = p.get_hierarchy(soup)
+        self.assertDictEqual(hierarchy, soup_hierarchy)
+
+    def test_get_hierarchy_div_child(self):
+        soup = BeautifulSoup(
+            """<body>
+            <div style="margin-top:12pt;padding-left:45pt;text-align:justify;text-indent:-45pt"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Item 1. Business</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Company Background</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Products</span></div>
+                </body>""",
+            features="html.parser",
+        )
+
+        expected_hierarchy = {
+            "root": [{"Item 1. Business": ["Company Background", "Products"]}]
+        }
+        p = Parser()
+        extracted_hierarchy = p.get_hierarchy(soup)
+        self.assertDictEqual(extracted_hierarchy, expected_hierarchy)
+
+    def test_get_hierarchy_large(self):
+        soup = BeautifulSoup(
+            """<body>
+            <div style="margin-top:18pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">PART I</span></div>
+            <div id="ief781ab58e4f4fcaa872ddbd30da40e1_13"></div>
+            <div style="margin-top:12pt;padding-left:45pt;text-align:justify;text-indent:-45pt"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Item 1. Business</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Company Background</span></div>
+            <div style="margin-top:6pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:400;line-height:120%">The Company is a California corporation established in 1977.</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Products</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">iPhone</span></div>
+            <div style="margin-top:9pt;text-align:justify"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-style:italic;font-weight:400;line-height:120%">Mac</span></div>
+                </body>""",
+            features="html.parser",
+        )
+        soup_hierarchy = {
+            "root": [
+                {
+                    "PART I": [
+                        {
+                            "Item 1. Business": [
+                                {
+                                    "Company Background": [
+                                        "The Company is a California corporation established in 1977."
+                                    ]
+                                },
+                                {"Products": ["iPhone", "Mac"]},
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        p = Parser()
+        extracted_hierarchy = p.get_hierarchy(soup)
+        self.maxDiff = None
+        self.assertDictEqual(extracted_hierarchy, soup_hierarchy)

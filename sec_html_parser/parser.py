@@ -1,11 +1,12 @@
-from typing import Iterator, List, Union
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import Iterator, List, Union
 
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
 
+from sec_html_parser.div_style import DivStyle
 from sec_html_parser.font_style import FontStyle
-from dataclasses import dataclass
 
 
 @dataclass
@@ -16,7 +17,7 @@ class HierarchyNode:
 
 
 class Parser:
-    def _is_child(self, node: Tag, other: Tag) -> bool:
+    def _is_span_child(self, node: Tag, other: Tag) -> bool:
         """Check if node is a child of other with respect to font styles"""
 
         # check that other has a style
@@ -94,31 +95,39 @@ class Parser:
         """
 
         hierarchy = {"root": []}
-        stack = []
+        span_stack = []
+        element_div = None
         for element_node in self._walk_soup(soup, not_into=["span"]):
-            if element_node.name == "span":
+            if element_node.name == "div":
+                element_div = element_node
+            elif element_node.name == "span":
                 element_content = element_node.text.strip()
                 element_children = {element_content: []}
-                element = (element_node, element_children[element_content])
+                element = (element_div, element_node, element_children[element_content])
 
                 # pop elements from the stack until a parent is found
-                for parent_node, parent_children in reversed(stack):
-                    if self._is_child(element_node, parent_node):
+                for parent_div, parent_node, parent_children in reversed(span_stack):
+                    div_child = (
+                        True
+                        if parent_div is None
+                        else self._is_div_child(element_div, parent_div)
+                    )
+                    if div_child or self._is_span_child(element_node, parent_node):
 
                         # add the element as a child of the parent
                         parent_children.append(element_children)
 
                         # add a pointer to the element's children to the stack
-                        stack.append(element)
+                        span_stack.append(element)
                         break
                     else:
-                        stack.pop()
+                        span_stack.pop()
                 else:
 
                     # if no parent was found add the element as a child
                     # of the root node
                     hierarchy["root"].append(element_children)
-                    stack.append(element)
+                    span_stack.append(element)
 
         hierarchy = self._clean_leaves(hierarchy)
 
@@ -139,3 +148,26 @@ class Parser:
 
             # if not then we clean all the child nodes of the current node
             return {name: [self._clean_leaves(child) for child in hierarchy[name]]}
+
+    def _is_div_child(self, node: Tag, other: Tag) -> bool:
+        """Check if node is a child of other with respect to div styles"""
+
+        # check that other has a style
+        try:
+            ostyle = DivStyle(other)
+        except ValueError:
+            return False
+
+        # a div with no style is always a child
+        try:
+            nstyle = DivStyle(node)
+        except ValueError:
+            return True
+
+        # check if div has a smaller margin than other
+        if ostyle.margin_top is not None:
+            if nstyle.margin_top is not None:
+                if nstyle.margin_top < ostyle.margin_top:
+                    return True
+
+        return False
