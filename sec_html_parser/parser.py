@@ -39,13 +39,19 @@ class Parser:
 
         # check if style by size
         if ostyle.size is not None:
-            if nstyle.size is not None and nstyle.size < ostyle.size:
-                return True
+            if nstyle.size is not None:
+                if nstyle.size < ostyle.size:
+                    return True
+                elif nstyle.size > ostyle.size:
+                    return False
 
         # check if style by weight
         if ostyle.weight is not None:
-            if nstyle.weight is not None and nstyle.weight < ostyle.weight:
-                return True
+            if nstyle.weight is not None:
+                if nstyle.weight < ostyle.weight:
+                    return True
+                elif nstyle.weight > ostyle.weight:
+                    return False
 
         # child if style by style
         if ostyle.style is not None:
@@ -112,7 +118,8 @@ class Parser:
                         if parent_div is None
                         else self._is_div_child(element_div, parent_div)
                     )
-                    if div_child or self._is_span_child(element_node, parent_node):
+                    span_child = self._is_span_child(element_node, parent_node)
+                    if (div_child and not span_child) or span_child:
 
                         # add the element as a child of the parent
                         parent_children.append(element_children)
