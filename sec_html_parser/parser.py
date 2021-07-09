@@ -111,6 +111,9 @@ class Parser:
                 self._add_span_to_hierarchy(
                     element_node, element_div, parents_metadata_stack, hierarchy
                 )
+            elif element_node.name == "table":
+                _, _, parent_children = parents_metadata_stack[-1]
+                parent_children.append({"table": [str(element_node)]})
 
         hierarchy = self._clean_leaves(hierarchy)
 
@@ -190,8 +193,12 @@ class Parser:
 
         return is_parent
 
-    def _clean_leaves(self, hierarchy: dict) -> dict:
+    def _clean_leaves(self, hierarchy: Union[dict, str]) -> Union[dict, str]:
         """Convert leaf nodes to strings instead of dictionaries with an empty list"""
+
+        # if hierarchy is a leaf we have nothing to do
+        if isinstance(hierarchy, str):
+            return hierarchy
 
         # first we get the name of the node
         name = list(hierarchy)[0]
