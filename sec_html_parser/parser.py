@@ -1,5 +1,3 @@
-from collections import defaultdict
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, List, Union
 
@@ -7,7 +5,7 @@ from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
 
 from sec_html_parser.div_style import DivStyle
-from sec_html_parser.font_style import FontStyle
+from sec_html_parser.span_style import SpanStyle
 
 
 class Parser:
@@ -16,13 +14,13 @@ class Parser:
 
         # check that other has a style
         try:
-            ostyle = FontStyle(other)
+            ostyle = SpanStyle(other)
         except ValueError:
             return False
 
         # a node with no style is always a child
         try:
-            nstyle = FontStyle(node)
+            nstyle = SpanStyle(node)
         except ValueError:
             return True
 

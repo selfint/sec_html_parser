@@ -6,7 +6,7 @@ from bs4.element import Tag
 
 
 @dataclass
-class FontStyle:
+class SpanStyle:
     """Parsed HTML span style element attributes"""
 
     size: Optional[float]
