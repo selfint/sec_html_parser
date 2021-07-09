@@ -53,7 +53,7 @@ class Parser:
     def _walk_soup(
         self,
         element: Union[BeautifulSoup, PageElement],
-        not_into: List[str] = list(),
+        not_into: Optional[List[str]] = None,
     ) -> Iterator[PageElement]:
         """
         Iterate given element and all its children in a depth-first manner
@@ -74,7 +74,7 @@ class Parser:
         element_has_children = hasattr(element, "children")
         if element_has_children:
 
-            should_recurse = element.name not in not_into
+            should_recurse = not_into is None or element.name not in not_into
             if should_recurse:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
