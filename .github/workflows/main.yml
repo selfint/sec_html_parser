@@ -19,5 +19,5 @@ jobs:
         run: poetry install
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Run tests
-        run: poetry run python -m unittest
+        run: poetry run pytest
       - run: echo "🍏 This job's status is ${{ job.status }}."
