@@ -29,33 +29,26 @@ class Parser:
         if nstyle.relative or ostyle.relative:
             return False
 
-        # check if style by size
-        if ostyle.size is not None:
-            if nstyle.size is not None:
-                if nstyle.size < ostyle.size:
-                    return True
-                elif nstyle.size > ostyle.size:
-                    return False
+        # compare style tuples
+        return nstyle.to_tuple() < ostyle.to_tuple()
 
-        # check if style by weight
-        if ostyle.weight is not None:
-            if nstyle.weight is not None:
-                if nstyle.weight < ostyle.weight:
-                    return True
-                elif nstyle.weight > ostyle.weight:
-                    return False
+    def _is_div_child(self, node: Tag, other: Tag) -> bool:
+        """Check if node is a child of other with respect to div styles"""
 
-        # child if style by style
-        if ostyle.style is not None:
-            if nstyle.style is not None:
-                if ostyle.style == "italic" and nstyle.style != "italic":
-                    return True
-                else:
-                    return False
-            return ostyle.style == "italic"
+        # check that other has a style
+        try:
+            ostyle = DivStyle(other)
+        except ValueError:
+            return False
 
-        # if not child by any of the above then it is not a child
-        return False
+        # a div with no style is always a child
+        try:
+            nstyle = DivStyle(node)
+        except ValueError:
+            return True
+
+        # check if div has a smaller margin than other
+        return nstyle.to_tuple() < ostyle.to_tuple()
 
     def _walk_soup(
         self,
@@ -157,29 +150,6 @@ class Parser:
 
             # if not then we clean all the child nodes of the current node
             return {name: [self._clean_leaves(child) for child in hierarchy[name]]}
-
-    def _is_div_child(self, node: Tag, other: Tag) -> bool:
-        """Check if node is a child of other with respect to div styles"""
-
-        # check that other has a style
-        try:
-            ostyle = DivStyle(other)
-        except ValueError:
-            return False
-
-        # a div with no style is always a child
-        try:
-            nstyle = DivStyle(node)
-        except ValueError:
-            return True
-
-        # check if div has a smaller margin than other
-        if ostyle.margin_top is not None:
-            if nstyle.margin_top is not None:
-                if nstyle.margin_top < ostyle.margin_top:
-                    return True
-
-        return False
 
     def hierarchy_to_string(self, hierarchy: dict, depth: int = 0) -> str:
         """Get a string representation of a hierarchy"""

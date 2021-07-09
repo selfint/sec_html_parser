@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import regex as re
 from bs4.element import Tag
@@ -33,6 +33,32 @@ class SpanStyle:
 
         relative = _relative_re.search(span_style)
         self.relative = False if relative is None else True
+
+    def to_tuple(self) -> Tuple[float, int, int]:
+        """
+        Convert SpanStyle to a tuple object.
+
+        This should be used when comparing two SpanStyle objects
+        in order to check which one is a 'child' of the other.
+
+        None size or weight is converted to -1.
+        Italic font style is converted to a 1, all others (and None) to a -1.
+
+        Since relative spans can never be a child or have children, the relative
+        property is not added to the tuple.
+
+        Example:
+            ```python
+            A = SpanStyle("<span font-size:1pt;font-style:italic/>")
+            B = SpanStyle("<span font-size:1pt/>")
+
+            assert A.to_tuple() < B.to_tuple()
+            ```
+
+        Returns (font_size, font_weight, font_style)
+        """
+
+        return (self.size or -1, self.weight or -1, 1 if self.style == "italic" else -1)
 
     @staticmethod
     def _get_style_string(node_or_style: Union[str, Tag]) -> str:
