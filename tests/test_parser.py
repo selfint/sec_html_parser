@@ -177,7 +177,7 @@ def test_get_hierarchy():
     soup_hierarchy = {"root": [{"Products": ["The Company designs", "good products"]}]}
 
     p = Parser()
-    hierarchy = p.get_hierarchy(soup)
+    hierarchy = p.get_soup_hierarchy(soup)
     assert hierarchy == soup_hierarchy
 
 
@@ -195,7 +195,7 @@ def test_get_hierarchy_div_child():
         "root": [{"Item 1. Business": ["Company Background", "Products"]}]
     }
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
     assert extracted_hierarchy == expected_hierarchy
 
 
@@ -210,7 +210,7 @@ def test_get_hierarchy_div_child_but_not_span_child():
 
     expected_hierarchy = {"root": ["Unless otherwise stated.", "PART I"]}
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
     assert extracted_hierarchy == expected_hierarchy
 
 
@@ -248,7 +248,7 @@ def test_get_hierarchy_large():
     }
 
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
     assert extracted_hierarchy == soup_hierarchy
 
 
@@ -277,7 +277,7 @@ def test_hierarchy_to_string():
 """
 
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
     extracted_hierarchy_string = p.hierarchy_to_string(extracted_hierarchy)
     assert extracted_hierarchy_string == soup_hierarchy_string
 
@@ -306,7 +306,7 @@ def test_hierarchy_with_table():
     }
 
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
 
     assert extracted_hierarchy == expected_hierarchy
 
@@ -322,5 +322,27 @@ def test_get_hierarchy_empty_table_is_ignored():
 
     expected_hierarchy = {"root": ["Washington, D.C. 20549"]}
     p = Parser()
-    extracted_hierarchy = p.get_hierarchy(soup)
+    extracted_hierarchy = p.get_soup_hierarchy(soup)
     assert extracted_hierarchy == expected_hierarchy
+
+
+def test_get_hierarchy_from_string():
+    string = """<body>
+<div style="text-align:center"><span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:11pt;font-weight:700;line-height:120%">Washington, D.C. 20549</span></div>
+<div style="margin-top:6pt;text-align:center"><table style="border-collapse:collapse;display:inline-table;vertical-align:top;width:19.444%"><tbody><tr><td style="width:1.0%"></td><td style="width:98.900%"></td><td style="width:0.1%"></td></tr><tr style="height:3pt"><td colspan="3" style="border-bottom:1pt solid #000000;padding:0 1pt"></td></tr></tbody></table></div>
+            </body>"""
+    soup = BeautifulSoup(
+        string,
+        features="html.parser",
+    )
+
+    p = Parser()
+    expected_hierarchy = p.get_soup_hierarchy(soup)
+    extracted_hierarchy = p.get_string_hierarchy(string)
+    assert extracted_hierarchy == expected_hierarchy
+
+
+def test_unsupported_type_raises_type_error():
+    p = Parser()
+    with pytest.raises(TypeError):
+        p.get_hierarchy(["unsupported type"])

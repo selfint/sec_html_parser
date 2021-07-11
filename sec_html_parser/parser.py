@@ -79,6 +79,26 @@ class Parser:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
 
+    def get_hierarchy(
+        self, target: Union[BeautifulSoup, Path, str], keep_nodes: bool = False
+    ) -> dict:
+        """
+        Get text hierarchy of text in a file, with respect to the style attribute
+        of the elements in the soup.
+        """
+
+        if isinstance(target, BeautifulSoup):
+            return self.get_soup_hierarchy(target, keep_nodes)
+        elif isinstance(target, Path):
+            return self.get_file_hierarchy(target, keep_nodes)
+        elif isinstance(target, str):
+            return self.get_string_hierarchy(target, keep_nodes)
+        else:
+            raise TypeError(
+                f"Can't get hierarchy of type '{type(target)}'"
+                " (supported types are: BeautifulSoup, Path, str"
+            )
+
     def get_file_hierarchy(self, path: Path, keep_nodes: bool = False) -> dict:
         """
         Get text hierarchy of text in a file, with respect to the style attribute
@@ -87,9 +107,19 @@ class Parser:
 
         soup = BeautifulSoup(path.read_text(), features="html.parser")
 
-        return self.get_hierarchy(soup, keep_nodes)
+        return self.get_soup_hierarchy(soup, keep_nodes)
 
-    def get_hierarchy(self, soup: BeautifulSoup, keep_nodes: bool = False) -> dict:
+    def get_string_hierarchy(self, string: str, keep_nodes: bool = False) -> dict:
+        """
+        Get text hierarchy of HTML in string, with respect to the style attribute
+        of the HTML elements.
+        """
+
+        soup = BeautifulSoup(string, features="html.parser")
+
+        return self.get_soup_hierarchy(soup, keep_nodes)
+
+    def get_soup_hierarchy(self, soup: BeautifulSoup, keep_nodes: bool = False) -> dict:
         """
         Get text hierarchy of text in soup, with respect to the style attribute
         of the elements in the soup.
