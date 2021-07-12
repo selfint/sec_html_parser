@@ -96,7 +96,7 @@ class Parser:
         else:
             raise TypeError(
                 f"Can't get hierarchy of type '{type(target)}'"
-                " (supported types are: BeautifulSoup, Path, str"
+                " (supported types are: BeautifulSoup, Path, str)"
             )
 
     def get_file_hierarchy(self, path: Path, keep_nodes: bool = False) -> dict:
