@@ -277,7 +277,13 @@ class Parser:
         """Get content of target with properly formatted HTML"""
 
         hierarchy = self.get_hierarchy(target)
-        html = ""
-        depth = 0
-        for node in self._walk_hierarchy_nodes(hierarchy):
-            pass
+        html = "<html>"
+        for leaf, depth, node in self._walk_hierarchy_nodes(hierarchy):
+            if leaf:
+                html += f"<p>{str(node)}</p>"
+            else:
+                html += f"<h{depth}>{str(node)}</h{depth}>"
+
+        html += "</html>"
+
+        return BeautifulSoup(html, features="html.parser").prettify()
