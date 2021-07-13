@@ -344,13 +344,13 @@ def test_walk_hierarchy():
     p = Parser()
     hierarchy = p.get_hierarchy(target)
     walker = p._walk_hierarchy_nodes(hierarchy)
-    assert next(walker) == (1, _node(
+    assert next(walker) == (False, 1, _node(
         """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">PART I</span>"""
     ))
-    assert next(walker) == (2, _node(
+    assert next(walker) == (False, 2, _node(
         """<span style="color:#000000;font-family:'Helvetica',sans-serif;font-size:9pt;font-weight:700;line-height:120%">Item 1.;Business</span>"""
     ))
-    assert next(walker) == (3, _node(
+    assert next(walker) == (True, 3, _node(
         """<table style="border-collapse:collapse;display:inline-table;vertical-align:top;width:100.000%">snipped for test</table>"""
     ))
     with pytest.raises(StopIteration):

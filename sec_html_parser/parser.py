@@ -256,13 +256,14 @@ class Parser:
         Return the element and its depth from the root at each iteration
         """
 
+        # return hierarchy if it is a leaf
         if isinstance(hierarchy, PageElement):
-            yield depth, hierarchy
+            yield True, depth, hierarchy
 
         else:
             key = list(hierarchy)[0]
             if isinstance(key, PageElement):
-                yield depth, key
+                yield False, depth, key
 
             if isinstance(hierarchy[key], list):
                 children: List[PageElement] = hierarchy[key]
@@ -270,7 +271,7 @@ class Parser:
                     yield from self._walk_hierarchy_nodes(child, depth + 1)
             else:
                 child: PageElement = hierarchy[key]
-                yield depth + 1, child
+                yield True, depth + 1, child
 
     def get_hierarchy_html(self, target: Union[BeautifulSoup, Path, str]) -> str:
         """Get content of target with properly formatted HTML"""
