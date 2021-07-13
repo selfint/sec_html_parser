@@ -79,9 +79,7 @@ class Parser:
                 for child in element.children:
                     yield from self._walk_soup(child, not_into)
 
-    def get_hierarchy(
-        self, target: Union[BeautifulSoup, Path, str]
-    ) -> dict:
+    def get_hierarchy(self, target: Union[BeautifulSoup, Path, str]) -> dict:
         """
         Get text hierarchy of text in a file, with respect to the style attribute
         of the elements in the soup.
