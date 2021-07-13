@@ -17,12 +17,11 @@ from sec_html_parser.parser import Parser
 )
 def main(target: Path, output: Path):
     p = Parser()
-    h = p.get_file_hierarchy(target)
+    h = p.get_hierarchy_html(target)
     if output is not None:
-        with output.open("w") as output_file:
-            json.dump(h, output_file)
+        output.write_text(h)
     else:
-        print(json.dumps(h))
+        print(h)
 
 
 if __name__ == "__main__":
