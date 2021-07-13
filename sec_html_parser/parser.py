@@ -80,7 +80,7 @@ class Parser:
                     yield from self._walk_soup(child, not_into)
 
     def get_hierarchy(
-        self, target: Union[BeautifulSoup, Path, str], keep_nodes: bool = False
+        self, target: Union[BeautifulSoup, Path, str]
     ) -> dict:
         """
         Get text hierarchy of text in a file, with respect to the style attribute
@@ -88,18 +88,18 @@ class Parser:
         """
 
         if isinstance(target, BeautifulSoup):
-            return self.get_soup_hierarchy(target, keep_nodes)
+            return self.get_soup_hierarchy(target)
         elif isinstance(target, Path):
-            return self.get_file_hierarchy(target, keep_nodes)
+            return self.get_file_hierarchy(target)
         elif isinstance(target, str):
-            return self.get_string_hierarchy(target, keep_nodes)
+            return self.get_string_hierarchy(target)
         else:
             raise TypeError(
                 f"Can't get hierarchy of type '{type(target)}'"
                 " (supported types are: BeautifulSoup, Path, str)"
             )
 
-    def get_file_hierarchy(self, path: Path, keep_nodes: bool = False) -> dict:
+    def get_file_hierarchy(self, path: Path) -> dict:
         """
         Get text hierarchy of text in a file, with respect to the style attribute
         of the elements in the soup.
@@ -107,9 +107,9 @@ class Parser:
 
         soup = BeautifulSoup(path.read_text(), features="html.parser")
 
-        return self.get_soup_hierarchy(soup, keep_nodes)
+        return self.get_soup_hierarchy(soup)
 
-    def get_string_hierarchy(self, string: str, keep_nodes: bool = False) -> dict:
+    def get_string_hierarchy(self, string: str) -> dict:
         """
         Get text hierarchy of HTML in string, with respect to the style attribute
         of the HTML elements.
@@ -117,9 +117,9 @@ class Parser:
 
         soup = BeautifulSoup(string, features="html.parser")
 
-        return self.get_soup_hierarchy(soup, keep_nodes)
+        return self.get_soup_hierarchy(soup)
 
-    def get_soup_hierarchy(self, soup: BeautifulSoup, keep_nodes: bool = False) -> dict:
+    def get_soup_hierarchy(self, soup: BeautifulSoup) -> dict:
         """
         Get text hierarchy of text in soup, with respect to the style attribute
         of the elements in the soup.
@@ -144,7 +144,7 @@ class Parser:
             elif element_node.name == "table":
                 if element_node.text != "":
                     _, _, parent_children = parents_metadata_stack[-1]
-                    parent_children.append({"table": [str(element_node)]})
+                    parent_children.append(element_node)
 
         hierarchy = self._clean_leaves(hierarchy)
 
@@ -169,12 +169,11 @@ class Parser:
         """
 
         # create element tuple for the stack
-        element_content = element_node.text.strip()
         element_children = []
         element_metadata = (element_div, element_node, element_children)
 
         # create element hierarchy node
-        element_hierarchy_node = {element_content: element_children}
+        element_hierarchy_node = {element_node: element_children}
 
         # pop elements from the stack until a parent is found
         for p_div, p_style, p_children in reversed(parents_metadata_stack):
@@ -224,35 +223,57 @@ class Parser:
 
         return is_parent
 
-    def _clean_leaves(self, hierarchy: Union[dict, str]) -> Union[dict, str]:
+    def _clean_leaves(
+        self, hierarchy: Union[dict, PageElement]
+    ) -> Union[dict, PageElement]:
         """Convert leaf nodes to strings instead of dictionaries with an empty list"""
 
         # if hierarchy is a leaf we have nothing to do
-        if isinstance(hierarchy, str):
+        if isinstance(hierarchy, PageElement):
             return hierarchy
 
-        # first we get the name of the node
-        name = list(hierarchy)[0]
+        # first we get the node we are at
+        node = list(hierarchy)[0]
 
         # then we check if it is a leaf
-        if len(hierarchy[name]) == 0:
+        if len(hierarchy[node]) == 0:
 
-            # if so then we return the name of the node
-            return name
+            # if so then we return the node
+            return node
         else:
 
             # if not then we clean all the child nodes of the current node
-            return {name: [self._clean_leaves(child) for child in hierarchy[name]]}
+            return {node: [self._clean_leaves(child) for child in hierarchy[node]]}
 
-    def hierarchy_to_string(self, hierarchy: dict, depth: int = 0) -> str:
-        """Get a string representation of a hierarchy"""
+    def _walk_hierarchy_nodes(
+        self,
+        hierarchy: Union[dict, PageElement],
+    ) -> Iterator[PageElement]:
+        """
+        Iterate given hierarchy and all its children in a depth-first manner.
+        """
 
-        if isinstance(hierarchy, str):
-            return "\t" * depth + hierarchy + "\n"
+        if isinstance(hierarchy, PageElement):
+            yield hierarchy
 
-        key = list(hierarchy.keys())[0]
-        string = "\t" * depth + key + "\n"
-        for child in hierarchy[key]:
-            string += self.hierarchy_to_string(child, depth + 1)
+        else:
+            key = list(hierarchy)[0]
+            if isinstance(key, PageElement):
+                yield key
 
-        return string
+            if isinstance(hierarchy[key], list):
+                children: List[PageElement] = hierarchy[key]
+                for child in children:
+                    yield from self._walk_hierarchy_nodes(child)
+            else:
+                child: PageElement = hierarchy[key]
+                yield child
+
+    def get_hierarchy_html(self, target: Union[BeautifulSoup, Path, str]) -> str:
+        """Get content of target with properly formatted HTML"""
+
+        hierarchy = self.get_hierarchy(target)
+        html = ""
+        depth = 0
+        for node in self._walk_hierarchy_nodes(hierarchy):
+            pass
