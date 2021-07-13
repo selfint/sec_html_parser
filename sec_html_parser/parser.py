@@ -248,26 +248,29 @@ class Parser:
     def _walk_hierarchy_nodes(
         self,
         hierarchy: Union[dict, PageElement],
-    ) -> Iterator[PageElement]:
+        depth: Optional[int] = 0,
+    ) -> Iterator[Tuple[int, PageElement]]:
         """
         Iterate given hierarchy and all its children in a depth-first manner.
+
+        Return the element and its depth from the root at each iteration
         """
 
         if isinstance(hierarchy, PageElement):
-            yield hierarchy
+            yield depth, hierarchy
 
         else:
             key = list(hierarchy)[0]
             if isinstance(key, PageElement):
-                yield key
+                yield depth, key
 
             if isinstance(hierarchy[key], list):
                 children: List[PageElement] = hierarchy[key]
                 for child in children:
-                    yield from self._walk_hierarchy_nodes(child)
+                    yield from self._walk_hierarchy_nodes(child, depth + 1)
             else:
                 child: PageElement = hierarchy[key]
-                yield child
+                yield depth + 1, child
 
     def get_hierarchy_html(self, target: Union[BeautifulSoup, Path, str]) -> str:
         """Get content of target with properly formatted HTML"""
