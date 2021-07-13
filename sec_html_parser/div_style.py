@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union
 
-import regex as re
+import re
 from bs4.element import Tag
 
 from sec_html_parser.span_style import SpanStyle

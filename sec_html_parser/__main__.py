@@ -1,5 +1,4 @@
 import click
-import json
 from pathlib import Path
 
 from sec_html_parser.parser import Parser
