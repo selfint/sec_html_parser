@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sec_html_parser"
-version = "0.3.0"
+version = "0.3.1"
 description = "Simple library for parsing SEC forms"
 authors = ["Tom Selfin <selfint@gmail.com>"]
 
